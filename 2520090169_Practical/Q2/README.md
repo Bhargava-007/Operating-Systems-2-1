@@ -173,6 +173,34 @@ Kernel Releases File Resources
 - Improve system reliability and protection.
 
 ---
+---
+
+# System Call Trace using `strace`
+
+## Command Used
+
+```bash
+strace cat sample.txt
+```
+
+## Important System Calls Observed
+
+| System Call | Purpose | Kernel Service |
+|-------------|---------|----------------|
+| `execve()` | Starts execution of the `cat` program. | Process management |
+| `brk()` | Allocates heap memory. | Memory management |
+| `mmap()` | Maps memory regions for the process. | Virtual memory management |
+| `openat()` | Opens `sample.txt`. | File system management |
+| `read()` | Reads data from the file into memory. | File I/O |
+| `write()` | Writes the file contents to the terminal. | Device / Terminal I/O |
+| `close()` | Closes the file descriptor. | Resource management |
+| `exit_group()` | Terminates the process. | Process management |
+
+## Analysis
+
+The `strace` output shows that every file operation performed by the `cat` command is implemented through Linux system calls. The application runs in user space and requests kernel services using system calls such as `openat()`, `read()`, `write()`, and `close()`. The Linux kernel handles the actual file access, memory management, and process termination before returning control to the application.
+
+----
 
 # Result
 The C program successfully copied the contents of the source file to the destination file using the Linux system calls `open()`, `read()`, `write()`, and `close()`. The experiment also demonstrated how application programs running in user space interact with the Linux kernel through system calls to perform file operations securely and efficiently.

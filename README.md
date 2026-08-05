@@ -18,10 +18,23 @@ This repository contains my **Operating Systems coursework, experiments, and pra
 ```
 Operating-Systems-2-1
 │
-├── Skill
-│   ├── Exp-1
-│   ├── Exp-2
+├── 2520090169_Practical
+│   ├── practical-1
+│   ├── practical-2
+│   └── ...
+|
+├── 2520090169_Practise
 │   └── ...
 │
+├── 2520090169_Skill
+│   ├── skill-1
+│   ├── skill-2
+│   └── ...
+|
+├── ForgeOS
+│   ├── NanoKernel
+│   ├── Shellforge
+│   └── ...
+|
 └── README.md
 ```

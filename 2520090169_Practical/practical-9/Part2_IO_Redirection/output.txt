@@ -1,0 +1,3 @@
+This line goes to file, not terminal!
+Shell does this for: command > output.txt
+PID 3663 writing to redirected stdout

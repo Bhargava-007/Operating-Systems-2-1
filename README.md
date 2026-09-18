@@ -39,5 +39,5 @@ Operating-Systems-2-1
 ├── Project
 │   └── ...
 |
-└── README.md
+└── README.md.
 ```

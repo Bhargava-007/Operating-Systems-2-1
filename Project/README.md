@@ -1,7 +1,6 @@
-```markdown
 # Linux Concurrent Producer-Consumer System Using Semaphores
 
-**Course:** Operating Systems and Systems Programming (25CS2104E)
+**Course:** Operating Systems and Systems Programming (25CS2104E)  
 **Term:** 2026-27, Term-I | Section 11 | Team 1
 
 ---
@@ -22,28 +21,27 @@ A fully synchronized concurrent producer-consumer system implemented in C on Ubu
 ---
 
 ## Project Structure
-```
-producer_consumer/
-├── main.c          — argument parsing, thread creation/joining, summary
-├── buffer.c        — circular buffer implementation
-├── buffer.h        — buffer declarations
-├── producer.c      — producer thread logic
-├── producer.h      — producer declarations
-├── consumer.c      — consumer thread logic
-├── consumer.h      — consumer declarations
-├── semaphores.c    — semaphore init and destroy
-├── semaphores.h    — semaphore declarations
-└── Makefile        — build automation with object files
-screenshots/
-├── 1_project_structure.png
-├── 2_build_success.png
-├── 3_basic_test.png
-├── 4_boundary_test.png
-├── 5_stress_test.png
-├── 6_varying_buffer.png
-├── 7_strace.png
-└── 8_gdb.png
-```
+
+    producer_consumer/
+    ├── main.c          — argument parsing, thread creation/joining, summary
+    ├── buffer.c        — circular buffer implementation
+    ├── buffer.h        — buffer declarations
+    ├── producer.c      — producer thread logic
+    ├── producer.h      — producer declarations
+    ├── consumer.c      — consumer thread logic
+    ├── consumer.h      — consumer declarations
+    ├── semaphores.c    — semaphore init and destroy
+    ├── semaphores.h    — semaphore declarations
+    └── Makefile        — build automation with object files
+    screenshots/
+    ├── 1_project_structure.png
+    ├── 2_build_success.png
+    ├── 3_basic_test.png
+    ├── 4_boundary_test.png
+    ├── 5_stress_test.png
+    ├── 6_varying_buffer.png
+    ├── 7_strace.png
+    └── 8_gdb.png
 
 ---
 
@@ -57,14 +55,10 @@ screenshots/
 ---
 
 ## Build
-```bash
-make
-```
+    make
 
 ## Run
-```bash
-./pc <buffer_size> <num_producers> <num_consumers> <items_per_producer>
-```
+    ./pc <buffer_size> <num_producers> <num_consumers> <items_per_producer>
 
 ## Test Cases
 | Test | Command | Purpose |
@@ -75,9 +69,7 @@ make
 | Small Buffer | `./pc 2 4 4 8` | Forces producer blocking on full buffer |
 
 ## Clean
-```bash
-make clean
-```
+    make clean
 
 ---
 
@@ -94,4 +86,3 @@ make clean
 
 ## GitHub Repository
 [https://github.com/HanishDev0017/OS-Project](https://github.com/HanishDev0017/OS-Project)
-```

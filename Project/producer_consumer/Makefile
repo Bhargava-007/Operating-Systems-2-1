@@ -1,11 +1,18 @@
 CC = gcc
 CFLAGS = -Wall -pthread
 TARGET = pc
+OBJS = main.o buffer.o producer.o consumer.o semaphores.o
 
 all: $(TARGET)
 
-$(TARGET): producer_consumer.c
-	$(CC) $(CFLAGS) -o $(TARGET) producer_consumer.c
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(OBJS)
+
+run: all
+	./$(TARGET) 5 2 2 4

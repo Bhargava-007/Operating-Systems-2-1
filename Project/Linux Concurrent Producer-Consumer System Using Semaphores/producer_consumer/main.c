@@ -6,6 +6,10 @@
 #include "semaphores.h"
 #include "producer.h"
 #include "consumer.h"
+#include "logger.h"
+
+// CO1: Demonstrates user-space to kernel-space transition via system calls
+// Run with: strace ./pc 5 2 2 4 to observe sem_wait/sem_post kernel calls
 
 int main(int argc, char *argv[]) {
     if (argc != 5) {
@@ -63,5 +67,6 @@ int main(int argc, char *argv[]) {
     printf("Time elapsed         : %.2f seconds\n", elapsed);
     printf("No race conditions. No deadlocks.\n");
 
+    close_log();
     return 0;
 }

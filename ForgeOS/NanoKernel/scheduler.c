@@ -52,7 +52,6 @@ void round_robin(Process procs[], int n, int quantum) {
         procs[i].remaining_time = procs[i].burst_time;
 
     int time = 0, done = 0;
-    int wait[MAX_PROCESSES] = {0};
 
     while (done < n) {
         int all_done = 1;

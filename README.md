@@ -19,14 +19,15 @@ This repository contains my **Operating Systems coursework, experiments, and pra
 Operating-Systems-2-1
 │
 ├── 2520090169_Practical
+|   └── ...
+|
+├── 2520090169_Practical
 │   ├── practical-1
 │   ├── practical-2
 │   └── ...
 |
-├── 2520090169_Practise
-│   └── ...
-│
 ├── 2520090169_Skill
+|   ├── 2520090169_Practise
 │   ├── skill-1
 │   ├── skill-2
 │   └── ...

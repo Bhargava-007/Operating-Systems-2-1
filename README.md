@@ -18,27 +18,38 @@ This repository contains my **Operating Systems coursework, experiments, and pra
 ```
 Operating-Systems-2-1
 │
+├── 2520090169_Certifications
+│   ├── Linux1.pdf
+│   ├── Linux2.pdf
+│   ├── LinuxEssentials.pdf
+│   ├── OperatingSystemsBasics.pdf
+│   └── OperatingSystemsSupport.pdf
+│
 ├── 2520090169_Practical
-|   └── ...
-|
-├── 2520090169_Practical
+│   ├── File-Permission
+│   ├── Pipes
 │   ├── practical-1
 │   ├── practical-2
-│   └── ...
-|
+│   ├── ...
+│   ├── practical-12
+│   └── Scheduling-Algorithm
+│
 ├── 2520090169_Skill
-|   ├── 2520090169_Practise
-│   ├── skill-1
-│   ├── skill-2
-│   └── ...
-|
+│   ├── 2520090169_Practise
+│   ├── Skill-1
+│   ├── Skill-2
+│   ├── ...
+│   └── Skill-24
+│
 ├── ForgeOS
 │   ├── NanoKernel
 │   ├── Shellforge
-│   └── ...
-|
+│   └── README.md
+│
 ├── Project
-│   └── ...
-|
-└── README.md.
+│   ├── Docs
+│   ├── Linux Concurrent Producer-Consumer System Using Semaphores
+│   └── README.md
+│
+└── README.md
 ```

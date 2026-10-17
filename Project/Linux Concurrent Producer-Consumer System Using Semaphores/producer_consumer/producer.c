@@ -6,22 +6,41 @@
 #include "semaphores.h"
 #include "logger.h"
 
-int ITEMS_PER_PRODUCER;
-
 void *producer(void *arg) {
-    // CO2: Thread lifecycle - transitions from Running to Blocked (sem_wait) to Ready
-    int id = *(int *)arg;
-    for (int i = 0; i < ITEMS_PER_PRODUCER; i++) {
-        int item = rand() % 100;
-        sem_wait(&empty);
-        sem_wait(&mutex);
-        insert_item(item);
-        printf("[Producer %d] Produced: %d at slot %d\n", id, item, (in - 1 + BUFFER_SIZE) % BUFFER_SIZE);
-        log_event("Producer inserted item");
+    // CO2: Thread lifecycle - transitions from Ready to Running to Blocked (sem_wait) to Ready
+    producer_arg_t *parg = (producer_arg_t *)arg;
+    int id = parg->id;
+    int items = parg->items_to_produce;
+    const char *session_id = parg->session_id;
+
+    for (int i = 0; i < items; i++) {
+        int item = (rand() % 1000) + 1; // 1-1000 payload
+
+        // 1. Wait for available slot in buffer (blocking wait on counting semaphore)
+        safe_sem_wait(&empty);
+
+        // 2. Acquire mutual exclusion binary semaphore
+        safe_sem_wait(&mutex);
+
+        // Critical section
+        int slot = in;
+        int res = insert_item(item);
+        if (res != 0) {
+            fprintf(stderr, "[ERROR] Producer %d detected buffer overflow/invariant violation at slot %d\n", id, slot);
+        }
+
+        printf("[Producer %d] Produced: %d at slot %d (occupancy: %d/%d)\n", id, item, slot, count, BUFFER_SIZE);
+        fflush(stdout);
+        log_event(session_id, "Producer", id, "INSERT", item, slot, count);
+
+        // Exit critical section
         sem_post(&mutex);
+
+        // Signal consumer that a new full slot is ready
         sem_post(&full);
-        usleep(100000);
+
+        // Small sleep to permit thread interleaving (10ms)
+        usleep(10000);
     }
     return NULL;
 }
-

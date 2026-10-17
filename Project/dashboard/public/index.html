@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concurrent Producer-Consumer System — OS Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <div class="brand-badge">25CS2104E · OS & SP</div>
+                    <div class="brand-title">Linux Concurrency Monitor</div>
+                </div>
+
+                <div class="sidebar-nav">
+                    <div class="nav-section-title">Navigation</div>
+                    <div class="nav-item active">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <span>Synchronization Dashboard</span>
+                    </div>
+                    <div class="nav-item" id="navOpenDocs">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span>Course Outcomes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="sys-meta-label">Environment</div>
+                <div class="sys-meta-val">Linux POSIX / WSL2</div>
+                <div class="sys-meta-label" style="margin-top: 8px;">Course Mapping</div>
+                <div class="sys-meta-val">CO1, CO2, CO3, CO6</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <div class="header-title">Producer-Consumer Synchronization (POSIX Semaphores)</div>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="systemStatusDot"></span>
+                        <span id="systemStatusText">Ready</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btnStepSim" title="Execute single step in simulation">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        <span>Step</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btnReset">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                        <span>Reset</span>
+                    </button>
+                    <button class="btn btn-primary" id="btnRunCompiled">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        <span>Run C Binary (WSL)</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Scrollable Workspace -->
+            <div class="workspace-scroll">
+                <div class="dashboard-content">
+                    <!-- Top Level Unified Metrics & Semaphores Row -->
+                    <div class="top-metrics-row">
+                        <div class="metric-card" id="semEmptyCard">
+                            <div class="card-head">
+                                <span class="card-title">sem_t empty</span>
+                                <span class="card-tag">Counting</span>
+                            </div>
+                            <div class="metric-number" id="valSemEmpty">5</div>
+                            <div class="card-caption">Available slots in buffer</div>
+                        </div>
+
+                        <div class="metric-card" id="semFullCard">
+                            <div class="card-head">
+                                <span class="card-title">sem_t full</span>
+                                <span class="card-tag">Counting</span>
+                            </div>
+                            <div class="metric-number" id="valSemFull">0</div>
+                            <div class="card-caption">Occupied slots with items</div>
+                        </div>
+
+                        <div class="metric-card mutex-unlocked" id="semMutexCard">
+                            <div class="card-head">
+                                <span class="card-title">sem_t mutex</span>
+                                <span class="card-tag">Binary</span>
+                            </div>
+                            <div class="metric-number" id="valSemMutex">1</div>
+                            <div class="card-caption" id="textSemMutex">UNLOCKED (Critical Section Free)</div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="card-head">
+                                <span class="card-title">Throughput</span>
+                                <span class="card-tag">Produced / Consumed</span>
+                            </div>
+                            <div class="metric-number" id="metricThroughput">0 / 0</div>
+                            <div class="card-caption" id="metricTimeElapsed">Elapsed: 0.00s · Fill: 0%</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Balanced Flow Layout -->
+                    <div class="workspace-flow">
+                        <!-- Section 1: Config Parameters & Thread Lifecycle Monitors Side-by-Side -->
+                        <div class="flow-row-dual">
+                            <!-- Configuration Parameters Panel -->
+                            <div class="panel-card config-panel">
+                                <div class="panel-header">
+                                    <div class="panel-title">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                                        <span>Configuration Parameters</span>
+                                    </div>
+                                    <span class="panel-badge">./pc args</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="config-grid">
+                                        <div class="control-group">
+                                            <div class="control-label">
+                                                <span>Buffer Size (N)</span>
+                                                <span class="control-val" id="valBufferSize">5</span>
+                                            </div>
+                                            <input type="range" min="2" max="16" value="5" class="slider-input" id="inputBufferSize">
+                                        </div>
+
+                                        <div class="control-group">
+                                            <div class="control-label">
+                                                <span>Producers</span>
+                                                <span class="control-val" id="valProducers">2</span>
+                                            </div>
+                                            <input type="range" min="1" max="6" value="2" class="slider-input" id="inputProducers">
+                                        </div>
+
+                                        <div class="control-group">
+                                            <div class="control-label">
+                                                <span>Consumers</span>
+                                                <span class="control-val" id="valConsumers">2</span>
+                                            </div>
+                                            <input type="range" min="1" max="6" value="2" class="slider-input" id="inputConsumers">
+                                        </div>
+
+                                        <div class="control-group">
+                                            <div class="control-label">
+                                                <span>Items per Producer</span>
+                                                <span class="control-val" id="valItems">4</span>
+                                            </div>
+                                            <input type="range" min="1" max="20" value="4" class="slider-input" id="inputItems">
+                                        </div>
+                                    </div>
+
+                                    <div class="control-group" style="margin-top: 4px;">
+                                        <div class="control-label">
+                                            <span>Animation Step Interval</span>
+                                            <span class="control-val" id="valSpeed">400ms</span>
+                                        </div>
+                                        <input type="range" min="50" max="1000" step="50" value="400" class="slider-input" id="inputSpeed">
+                                    </div>
+
+                                    <div class="button-stack">
+                                        <button class="btn btn-primary" id="btnToggleSim" style="width: 100%; justify-content: center;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                            <span id="btnToggleSimText">Start Animated Simulation</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thread Lifecycle Monitors Panel Beside Config -->
+                            <div class="panel-card monitors-panel">
+                                <div class="panel-header">
+                                    <div class="panel-title">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                        <span>Thread Lifecycle Monitors</span>
+                                    </div>
+                                    <span class="panel-badge">POSIX pthreads</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="thread-lists">
+                                        <div>
+                                            <div class="thread-col-title producer-label">
+                                                <span>Producers</span>
+                                                <span id="producerCountBadge">2</span>
+                                            </div>
+                                            <div class="thread-card-list" id="producerThreadList"></div>
+                                        </div>
+                                        <div>
+                                            <div class="thread-col-title consumer-label">
+                                                <span>Consumers</span>
+                                                <span id="consumerCountBadge">2</span>
+                                            </div>
+                                            <div class="thread-card-list" id="consumerThreadList"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Under that, CIRCULAR Shared Buffer Visualization Card -->
+                        <div class="panel-card buffer-viz-card">
+                            <div class="panel-header" style="width: 100%;">
+                                <div class="panel-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    <span>Circular Shared Memory Buffer</span>
+                                </div>
+                                <div class="buffer-legend">
+                                    <div class="legend-item"><div class="legend-indicator empty"></div><span>Empty</span></div>
+                                    <div class="legend-item"><div class="legend-indicator occupied"></div><span>Occupied</span></div>
+                                    <div class="legend-item"><div class="legend-indicator in-ptr"></div><span>in (Producer)</span></div>
+                                    <div class="legend-item"><div class="legend-indicator out-ptr"></div><span>out (Consumer)</span></div>
+                                </div>
+                            </div>
+
+                            <div class="buffer-center-row">
+                                <div class="buffer-svg-container">
+                                    <svg class="buffer-svg" id="circularBufferSvg" viewBox="0 0 440 440"></svg>
+                                </div>
+                            </div>
+
+                            <!-- Linear Array Track -->
+                            <div class="linear-buffer-view">
+                                <div class="linear-buffer-title">
+                                    <span>Memory Array: buffer[MAX_BUFFER]</span>
+                                    <span class="sys-meta-val" id="linearPointerMeta">in: 0 | out: 0</span>
+                                </div>
+                                <div class="linear-slots-track" id="linearSlotsTrack"></div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Under that, Logs Panel -->
+                        <div class="panel-card log-panel">
+                            <div class="log-tabs">
+                                <button class="log-tab active" id="tabTerminal">Process Execution Stream</button>
+                                <button class="log-tab" id="tabFileLog">pc_log.txt [CO5 File I/O]</button>
+                                <div style="flex:1"></div>
+                                <div class="verification-pill" id="verificationPill">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    <span>0 Deadlocks · 0 Race Conditions</span>
+                                </div>
+                            </div>
+                            <div class="log-terminal" id="terminalLog">
+                                <div class="log-line system-log">[System] Ready to run concurrent producer-consumer system.</div>
+                                <div class="log-line system-log">[System] Click 'Run C Binary' to build and run native POSIX threads in WSL or 'Start Animated Simulation' to step through visually.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -73,28 +73,29 @@ sem_wait(resource semaphore)  →  sem_wait(mutex)  →  [critical section]  →
 OS-Project/
 ├── Docs/
 │   └── Abstract.pdf
-├── producer_consumer/
-│   ├── main.c          — entry point: argument parsing, thread creation, joining, summary
-│   ├── buffer.c        — circular buffer: insert_item(), remove_item(), init_buffer()
-│   ├── buffer.h        — buffer declarations and constants
-│   ├── producer.c      — producer thread function with CO2 lifecycle comments
-│   ├── producer.h      — producer declarations
-│   ├── consumer.c      — consumer thread function with CO2 lifecycle comments
-│   ├── consumer.h      — consumer declarations
-│   ├── semaphores.c    — init_semaphores(), destroy_semaphores()
-│   ├── semaphores.h    — semaphore declarations (sem_t empty, full, mutex)
-│   ├── logger.c        — file I/O logging: log_event(), close_log() [CO5]
-│   ├── logger.h        — logger declarations
-│   └── Makefile        — build automation with separate object file compilation
-├── screenshots/
-│   ├── 1_project_structure.png   — project layout
-│   ├── 2_build_success.png       — clean make output, zero warnings
-│   ├── 3_basic_test.png          — ./pc 5 3 2 10
-│   ├── 4_boundary_test.png       — ./pc 3 1 1 5
-│   ├── 5_stress_test.png         — ./pc 10 5 5 20
-│   ├── 6_varying_buffer.png      — ./pc 2 4 4 8
-│   ├── 7_strace.png              — strace syscall trace [CO1]
-│   └── 8_gdb.png                 — GDB multi-thread debug session [CO2, CO6]
+├── Linux Concurrent Producer-Consumer System Using Semaphores/
+│   ├── producer_consumer/
+│   │   ├── main.c          — entry point: argument parsing, thread creation, monotonic timing, metrics
+│   │   ├── buffer.c        — circular buffer: insert_item(), remove_item(), init_buffer()
+│   │   ├── buffer.h        — buffer declarations, capacity constants, and count tracker
+│   │   ├── producer.c      — producer thread function with safe_sem_wait & invariant logging
+│   │   ├── producer.h      — producer declarations and argument struct
+│   │   ├── consumer.c      — consumer thread function with safe_sem_wait & invariant logging
+│   │   ├── consumer.h      — consumer declarations and argument struct
+│   │   ├── semaphores.c    — init_semaphores(), destroy_semaphores(), safe_sem_wait() (EINTR loop)
+│   │   ├── semaphores.h    — semaphore declarations (sem_t empty, full, mutex)
+│   │   ├── logger.c        — thread-safe structured file I/O logging with session IDs [CO5]
+│   │   ├── logger.h        — logger declarations and function prototypes
+│   │   ├── Makefile        — build automation with -Wall -Wextra -pthread -O2
+│   │   └── run_tests.sh    — automated timeout-based concurrency & deadlock test suite
+│   └── screenshots/        — verification output and debugging screenshots
+├── dashboard/              — Sage Green Systems-Engineering Monitoring UI
+│   ├── server.js           — Node.js backend bridge with 15s deadlock watchdog
+│   ├── package.json        — server configuration
+│   └── public/
+│       ├── index.html      — responsive structured layout
+│       ├── style.css       — minimalist Sage Green aesthetic system
+│       └── app.js          — interactive circular buffer SVG & native event playback
 └── README.md
 ```
 
@@ -172,23 +173,49 @@ make clean
 
 ---
 
-## Sample Output
+---
+
+## Verified Execution & Invariant Reporting
 
 ```
-[Producer 1] Produced: 42 at slot 0
-[Producer 2] Produced: 17 at slot 1
-[Consumer 1] Consumed: 42 from slot 0
-[Consumer 2] Consumed: 17 from slot 1
+[Producer 1] Produced: 932 at slot 0 (occupancy: 1/5)
+[Producer 2] Produced: 237 at slot 1 (occupancy: 2/5)
+[Consumer 1] Consumed: 932 from slot 0 (occupancy: 1/5)
+[Consumer 2] Consumed: 237 from slot 1 (occupancy: 0/5)
 ...
 
---- Summary ---
-Total items produced : 8
-Total items consumed : 8
-Time elapsed         : 0.84 seconds
-No race conditions. No deadlocks.
+--- Execution Metrics & Invariant Report ---
+Session ID               : web_m3a9f0
+Buffer Capacity          : 5
+Producer Threads         : 2 (total produced: 8)
+Consumer Threads         : 2 (total consumed: 8)
+Execution Duration       : 55.634 ms (0.056 s)
+Final Buffer Occupancy   : 0 items
+Final Semaphore Invariants: empty=5/5, full=0/0, mutex=1/1
+Verification Status      : PASS (All synchronization invariants satisfied, 0 deadlocks observed)
 ```
 
-All events are simultaneously logged with timestamps to `pc_log.txt` via the file I/O logger (CO5).
+All events are simultaneously recorded with nanosecond timestamps, thread roles, item values, and session IDs to `pc_log.txt` via thread-safe file I/O (CO5):
+```
+[1792212337.962095029] [session_1] [Producer 1] INSERT item=876 slot=2 occupancy=1
+[1792212337.965837678] [session_1] [Consumer 1] REMOVE item=876 slot=2 occupancy=1
+```
+
+---
+
+## Automated Concurrency Test Suite
+
+An automated timeout-based test suite (`run_tests.sh`) validates synchronization under diverse configurations:
+- **Boundary Buffer Size 1**: Strictly serialized handoff between producer and consumer.
+- **Large Buffer Size 20**: High-capacity loose coupling.
+- **High Producer Contention (6P:1C)**: Exercises `sem_wait(&empty)` blocking under heavy buffer-full pressure.
+- **High Consumer Contention (1P:6C)**: Exercises `sem_wait(&full)` blocking under buffer-empty starvation.
+- **Stress Concurrency (5P:5C, Buffer 8, 100 items)**: 10 concurrent threads under sustained interleaving.
+
+Run the test suite:
+```bash
+./run_tests.sh
+```
 
 ---
 

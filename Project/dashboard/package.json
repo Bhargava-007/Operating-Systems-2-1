@@ -1,0 +1,10 @@
+{
+  "name": "pc-dashboard",
+  "version": "1.0.0",
+  "description": "Linux Concurrent Producer-Consumer Systems-Engineering Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}

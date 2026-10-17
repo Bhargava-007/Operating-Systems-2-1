@@ -1,3 +1,4 @@
+#include <errno.h>
 #include "semaphores.h"
 
 sem_t empty, full, mutex;
@@ -8,8 +9,17 @@ void init_semaphores(int buffer_size) {
     sem_init(&mutex, 0, 1);
 }
 
-void destroy_semaphores() {
+void destroy_semaphores(void) {
     sem_destroy(&empty);
     sem_destroy(&full);
     sem_destroy(&mutex);
+}
+
+int safe_sem_wait(sem_t *sem) {
+    int s;
+    while ((s = sem_wait(sem)) == -1 && errno == EINTR) {
+        // Restart sem_wait if interrupted by signal
+        continue;
+    }
+    return s;
 }

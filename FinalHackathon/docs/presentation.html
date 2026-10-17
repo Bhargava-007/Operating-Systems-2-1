@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart CPU Scheduler — OS Lab Hackathon Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Design Tokens */
+    :root {
+      --bg-page: #F7F5F2;
+      --surface-card: #FFFFFF;
+      --border-card: #E8E4DF;
+      --border-input: #D8D3CC;
+
+      --text-primary: #1A1A1A;
+      --text-secondary: #6B6B6B;
+      --text-muted: #8C8C8C;
+      --text-body: #374151;
+
+      --accent-primary: #5C6AC4;
+      --accent-hover: #4A58B2;
+      --accent-soft: #EEF0FA;
+
+      --danger: #C0392B;
+      --danger-soft: #FDECEA;
+      --success: #27AE60;
+      --success-soft: #EAFAF1;
+
+      --p1: #A8C5DA;
+      --p2: #B5D5A8;
+      --p3: #D4B8E0;
+      --p4: #F0D9A0;
+      --p5: #F4B8A0;
+
+      --font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Top Progress Bar */
+    .progress-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: transparent;
+      z-index: 100;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background-color: var(--accent-primary);
+      width: 9.09%;
+      transition: width 300ms ease;
+    }
+
+    /* Shortcut Toast Notification */
+    .key-hint {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      background: rgba(26, 26, 26, 0.88);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 20px;
+      z-index: 99;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .key-hint kbd {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    /* Slides Deck Viewport */
+    .deck-container {
+      position: relative;
+      width: 100vw;
+      height: calc(100vh - 52px);
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+      transition: opacity 250ms ease, transform 250ms ease, visibility 250ms;
+      padding: 24px 36px;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .slide-inner {
+      max-width: 960px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Slide Header Components */
+    .slide-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .slide-pill {
+      background-color: var(--accent-soft);
+      color: var(--accent-primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+
+    .slide-section {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .slide-title {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+      margin-bottom: 20px;
+      letter-spacing: -0.015em;
+    }
+
+    .title-hero {
+      font-size: 46px;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .title-sub {
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    /* Cards & Components */
+    .card {
+      background-color: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--accent-soft);
+      color: var(--accent-primary);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .grid-2-rows {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px 20px;
+    }
+
+    /* Slide 1 - Title Extras */
+    .meta-row {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 22px;
+      display: flex;
+      gap: 16px;
+      font-weight: 500;
+    }
+
+    .team-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .team-pill {
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-primary);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .title-footer-tag {
+      position: absolute;
+      bottom: 20px;
+      right: 32px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Slide 2 - Problem Statement */
+    .problem-callout {
+      background-color: var(--accent-soft);
+      border-radius: 10px;
+      padding: 16px 22px;
+      margin-top: 18px;
+    }
+
+    .problem-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .problem-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.45;
+    }
+
+    /* Slide 3 - Objectives list */
+    .obj-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+    }
+
+    .obj-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      background: var(--accent-soft);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .obj-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .obj-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    /* Slide 4 - Architecture */
+    .arch-diagram {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .arch-box {
+      width: 100%;
+      text-align: center;
+      padding: 16px 20px;
+      border-radius: 10px;
+    }
+
+    .arch-driver {
+      background-color: var(--accent-soft);
+      border: 1px solid var(--accent-primary);
+    }
+
+    .arch-engine {
+      background-color: var(--success-soft);
+      border: 1px solid var(--success);
+    }
+
+    .arch-dynamic {
+      background-color: var(--danger-soft);
+      border: 1px solid var(--danger);
+    }
+
+    .arch-pcb {
+      background-color: var(--surface-card);
+      border: 1px solid var(--border-card);
+    }
+
+    .arch-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .arch-sub {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .arch-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 18px;
+      color: var(--accent-primary);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* Slide 5 - Algorithm */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .step-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      background: var(--accent-soft);
+      padding: 4px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .code-box {
+      background-color: #1A1A1A;
+      color: #A8C5DA;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      border-radius: 10px;
+      padding: 22px;
+      white-space: pre;
+    }
+
+    .stat-pills-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat-pill {
+      flex: 1;
+      text-align: center;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Slide 6 - Four Modes */
+    .mode-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .mode-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .mode-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent-primary);
+    }
+
+    .mode-badge-dynamic {
+      background: var(--accent-primary);
+      color: #FFFFFF;
+    }
+
+    .mode-desc {
+      font-size: 13px;
+      color: var(--text-body);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .mode-impact {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .text-limitation {
+      color: var(--danger);
+    }
+
+    .text-strength {
+      color: var(--success);
+    }
+
+    /* Slide 7 - Tech Stack */
+    .tech-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tech-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+
+    .tech-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .dot-indigo { background: var(--accent-primary); }
+    .dot-green  { background: var(--success); }
+    .dot-amber  { background: #D97706; }
+    .dot-slate  { background: var(--text-secondary); }
+
+    .tech-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .tech-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .badge-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    /* Slide 8 - Gantt Demo */
+    .gantt-track {
+      display: flex;
+      width: 100%;
+      height: 52px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .gantt-seg {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #FFFFFF;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      border-right: 1px solid rgba(255,255,255,0.4);
+    }
+
+    .gantt-axis {
+      position: relative;
+      width: 100%;
+      height: 20px;
+      margin-bottom: 20px;
+    }
+
+    .axis-label {
+      position: absolute;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      transform: translateX(-50%);
+    }
+
+    .summary-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .summary-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .muted-footer {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    /* Slide 9 - Comparison */
+    .comp-stat {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      color: var(--text-secondary);
+    }
+
+    .comp-stat:last-child {
+      border-bottom: none;
+    }
+
+    .comp-stat strong {
+      color: var(--text-primary);
+    }
+
+    .comp-box-static {
+      background: #FAFAF9;
+      border: 1px solid var(--border-card);
+    }
+
+    .comp-box-dynamic {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-primary);
+    }
+
+    .verdict-box {
+      background: var(--success-soft);
+      border: 1px solid #BCE5CE;
+      color: #1E6B3E;
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    /* Slide 10 - Testing Table */
+    .slide-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .slide-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: #F7F5F2;
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .slide-table td {
+      padding: 10px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid #F0ECE6;
+      color: var(--text-primary);
+    }
+
+    .slide-table tr:nth-child(even) td {
+      background-color: #FAFAF9;
+    }
+
+    .slide-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge-pass {
+      background-color: var(--success-soft);
+      color: var(--success);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* Slide 11 - Deliverables */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 10px 16px;
+    }
+
+    .check-icon {
+      color: var(--success);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .check-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 170px;
+    }
+
+    .check-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Slide 12 - Thank you card */
+    .thank-you-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 28px 32px;
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .team-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .team-card-pill {
+      background: var(--bg-page);
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100vw;
+      height: 52px;
+      background: var(--surface-card);
+      border-top: 1px solid var(--border-card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 100;
+    }
+
+    .nav-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: var(--bg-page);
+      border: 1px solid var(--border-input);
+      color: var(--text-primary);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #EEEAE5;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .slide-counter {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        height: auto;
+        overflow: visible;
+        background: #FFFFFF;
+      }
+      .progress-bar-container,
+      .key-hint,
+      .bottom-nav {
+        display: none !important;
+      }
+      .deck-container {
+        height: auto;
+      }
+      .slide {
+        position: relative;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        page-break-after: always;
+        height: 100vh;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 768px) {
+      .slide {
+        padding: 16px;
+      }
+      .slide-title {
+        font-size: 26px;
+      }
+      .title-hero {
+        font-size: 32px;
+      }
+      .grid-3, .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .key-hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Progress Bar -->
+  <div class="progress-bar-container">
+    <div id="progressBar" class="progress-bar"></div>
+  </div>
+
+  <!-- Keyboard navigation hint toast -->
+  <div id="keyHint" class="key-hint">
+    <span>Use</span>
+    <kbd>←</kbd>
+    <kbd>→</kbd>
+    <span>or</span>
+    <kbd>Space</kbd>
+    <span>to navigate</span>
+  </div>
+
+  <!-- Slides Viewport Deck -->
+  <main class="deck-container">
+
+    <!-- ========================================== -->
+    <!-- SLIDE 1: TITLE                             -->
+    <!-- ========================================== -->
+    <section class="slide active" id="slide-1">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 01</span>
+          <span class="slide-section">OS Lab Hackathon — Team 1</span>
+        </div>
+        <h1 class="slide-title title-hero">Smart CPU Scheduler</h1>
+        <h2 class="title-sub">with Dynamic Priority Adjustment</h2>
+        
+        <div class="meta-row">
+          <span>Course: <strong>25CS2104E</strong></span>
+          <span>&bull;</span>
+          <span>Section: <strong>S11</strong></span>
+          <span>&bull;</span>
+          <span>Guide: <strong>Mrs. Alekhya</strong></span>
+        </div>
+
+        <div class="team-tags">
+          <div class="team-pill">Bhargava &middot; 2520090169</div>
+          <div class="team-pill">Hanish &middot; 2520090107</div>
+          <div class="team-pill">Teja &middot; 2520090162</div>
+          <div class="team-pill">Pardhu &middot; 2520090043</div>
+        </div>
+
+        <div class="title-footer-tag">SchedSim &mdash; CPU Scheduler Visualizer</div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 2: PROBLEM STATEMENT                 -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-2">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 02</span>
+          <span class="slide-section">The Problem</span>
+        </div>
+        <h2 class="slide-title">Why does CPU scheduling fail?</h2>
+        
+        <div class="grid-3">
+          <div class="card">
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--danger); margin-bottom: 8px;">Starvation</h3>
+            <p style="font-size: 13.5px; color: var(--text-body); line-height: 1.5;">Low-priority processes wait indefinitely when high-priority processes keep arriving. They may never execute.</p>
+          </div>
+          <div class="card">
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--accent-primary); margin-bottom: 8px;">Static Priorities</h3>
+            <p style="font-size: 13.5px; color: var(--text-body); line-height: 1.5;">Fixed priorities ignore how long a process has been waiting. No fairness mechanism exists in classic priority schedulers.</p>
+          </div>
+          <div class="card">
+            <h3 style="font-size: 16px; font-weight: 700; color: #D97706; margin-bottom: 8px;">Poor Response Time</h3>
+            <p style="font-size: 13.5px; color: var(--text-body); line-height: 1.5;">Interactive processes suffer when blocked behind long batch jobs with no urgency awareness or adaptive escalation.</p>
+          </div>
+        </div>
+
+        <div class="problem-callout">
+          <div class="problem-label">Problem Statement</div>
+          <div class="problem-text">"Design a CPU scheduler that dynamically adjusts process priorities to reduce starvation and improve response time."</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 3: OBJECTIVES                        -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-3">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 03</span>
+          <span class="slide-section">Objectives</span>
+        </div>
+        <h2 class="slide-title">What we set out to build</h2>
+        
+        <div class="grid-2-rows">
+          <div class="obj-item">
+            <div class="obj-num">01</div>
+            <div>
+              <div class="obj-title">Implement classic algorithms</div>
+              <div class="obj-desc">FCFS, Round Robin, and static Priority Scheduling in C</div>
+            </div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-num">02</div>
+            <div>
+              <div class="obj-title">Build dynamic priority aging</div>
+              <div class="obj-desc">Boost waiting process priority every 5 time units (+1, capped at +5)</div>
+            </div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-num">03</div>
+            <div>
+              <div class="obj-title">Detect starvation</div>
+              <div class="obj-desc">Flag any process waiting beyond 20 time units automatically</div>
+            </div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-num">04</div>
+            <div>
+              <div class="obj-title">Visualize scheduling</div>
+              <div class="obj-desc">Zero-dependency HTML5/JS Gantt chart visualizer</div>
+            </div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-num">05</div>
+            <div>
+              <div class="obj-title">Prove improvement</div>
+              <div class="obj-desc">Side-by-side comparison of static vs dynamic priority outcomes</div>
+            </div>
+          </div>
+          <div class="obj-item">
+            <div class="obj-num">06</div>
+            <div>
+              <div class="obj-title">Document &amp; deploy</div>
+              <div class="obj-desc">GitHub repo, LaTeX report, and live demo-ready system</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 4: SYSTEM DESIGN                     -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-4">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 04</span>
+          <span class="slide-section">Architecture</span>
+        </div>
+        <h2 class="slide-title">How the system is structured</h2>
+        
+        <div class="arch-diagram">
+          <!-- Row 1 -->
+          <div class="arch-box arch-driver">
+            <div class="arch-title">Main Driver</div>
+            <div class="arch-sub">CLI &middot; Process Setup &middot; Algorithm Selection &middot; Tick Clock</div>
+          </div>
+          
+          <div class="arch-connector">&darr;</div>
+
+          <!-- Row 2 -->
+          <div class="grid-3" style="width: 100%;">
+            <div class="arch-box arch-engine">
+              <div class="arch-title">Scheduling Engine (C)</div>
+              <div class="arch-sub">FCFS &middot; Round Robin &middot; Priority</div>
+            </div>
+            <div class="arch-box arch-dynamic">
+              <div class="arch-title">Dynamic Priority Module (C)</div>
+              <div class="arch-sub">Aging &middot; Starvation Detection</div>
+            </div>
+            <div class="arch-box arch-pcb">
+              <div class="arch-title">Process Queue (PCBs)</div>
+              <div class="arch-sub">State Machine &middot; Priority Tracking</div>
+            </div>
+          </div>
+
+          <div class="arch-connector">&darr;</div>
+
+          <!-- Row 3 -->
+          <div class="arch-box arch-driver">
+            <div class="arch-title">Web Visualizer (HTML5 + JS)</div>
+            <div class="arch-sub">Gantt Chart &middot; Stats Table &middot; Comparison View &middot; Zero Dependencies</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 5: THE ALGORITHM                     -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-5">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 05</span>
+          <span class="slide-section">Core Innovation</span>
+        </div>
+        <h2 class="slide-title">Dynamic Priority Aging</h2>
+        
+        <div class="grid-2">
+          <div class="step-list">
+            <div class="step-row">
+              <span class="step-badge">STEP 1</span>
+              <span class="step-text">Every tick, inspect all READY waiting processes</span>
+            </div>
+            <div class="step-row">
+              <span class="step-badge">STEP 2</span>
+              <span class="step-text">If <code>waiting_time % 5 == 0</code>, boost priority by +1</span>
+            </div>
+            <div class="step-row">
+              <span class="step-badge">STEP 3</span>
+              <span class="step-text">Cap boost at +5 above original. Flag if wait &gt; 20 units.</span>
+            </div>
+          </div>
+
+          <div class="code-box">new_priority = original_priority
+             - floor(waiting_time / 5)
+
+effective = max(new_priority,
+             original_priority - 5)
+
+if waiting_time &gt; 20:
+    flag_starvation(process)</div>
+        </div>
+
+        <div class="stat-pills-row">
+          <div class="stat-pill">Aging Interval: <strong>5 units</strong></div>
+          <div class="stat-pill">Max Boost: <strong>+5 levels</strong></div>
+          <div class="stat-pill">Starvation Threshold: <strong>&gt;20 units</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 6: ALGORITHMS COVERED                -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-6">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 06</span>
+          <span class="slide-section">Implementation</span>
+        </div>
+        <h2 class="slide-title">Four scheduling modes</h2>
+        
+        <div class="grid-2">
+          <div class="card">
+            <div class="mode-header">
+              <div class="mode-title">FCFS</div>
+              <span class="mode-badge">Non-preemptive</span>
+            </div>
+            <p class="mode-desc">Executes processes in arrival order. Simple, fair for equal workloads.</p>
+            <div class="mode-impact text-limitation">Limitation: Convoy effect &mdash; one long job delays all others.</div>
+          </div>
+
+          <div class="card">
+            <div class="mode-header">
+              <div class="mode-title">Round Robin</div>
+              <span class="mode-badge">Preemptive</span>
+            </div>
+            <p class="mode-desc">Time-slice quantum (configurable). Each process gets equal CPU turns.</p>
+            <div class="mode-impact text-limitation">Limitation: Ignores urgency &mdash; high-priority jobs wait equally.</div>
+          </div>
+
+          <div class="card">
+            <div class="mode-header">
+              <div class="mode-title">Priority (Static)</div>
+              <span class="mode-badge">Non-preemptive</span>
+            </div>
+            <p class="mode-desc">Runs highest-priority process first. Fast for known workloads.</p>
+            <div class="mode-impact text-limitation">Limitation: Low-priority processes starve indefinitely.</div>
+          </div>
+
+          <div class="card" style="border-color: var(--accent-primary);">
+            <div class="mode-header">
+              <div class="mode-title">Dynamic Priority (Aging)</div>
+              <span class="mode-badge mode-badge-dynamic">Dynamic</span>
+            </div>
+            <p class="mode-desc">Priority adjusts in real time based on waiting time. Eliminates starvation.</p>
+            <div class="mode-impact text-strength">Strength: Guaranteed execution for every process.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 7: TECH STACK                        -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-7">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 07</span>
+          <span class="slide-section">Technologies</span>
+        </div>
+        <h2 class="slide-title">Built with</h2>
+        
+        <div class="grid-2">
+          <!-- C Core -->
+          <div class="tech-list">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 2px;">C Core Engine</div>
+            <div class="tech-item">
+              <div class="tech-dot dot-indigo"></div>
+              <div>
+                <div class="tech-name">GCC (C99)</div>
+                <div class="tech-desc">Core scheduling logic, -Wall -Wextra -O2, zero warnings</div>
+              </div>
+            </div>
+            <div class="tech-item">
+              <div class="tech-dot dot-green"></div>
+              <div>
+                <div class="tech-name">GNU Make</div>
+                <div class="tech-desc">Automated build pipeline (make clean &amp;&amp; make)</div>
+              </div>
+            </div>
+            <div class="tech-item">
+              <div class="tech-dot dot-slate"></div>
+              <div>
+                <div class="tech-name">WSL2 / Ubuntu</div>
+                <div class="tech-desc">Linux execution environment for POSIX compatibility</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Web Visualizer -->
+          <div class="tech-list">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 2px;">Web Visualizer</div>
+            <div class="tech-item">
+              <div class="tech-dot dot-amber"></div>
+              <div>
+                <div class="tech-name">HTML5 &middot; Vanilla JS</div>
+                <div class="tech-desc">Full scheduling logic mirrored from C, zero dependencies</div>
+              </div>
+            </div>
+            <div class="tech-item">
+              <div class="tech-dot dot-indigo"></div>
+              <div>
+                <div class="tech-name">CSS3 Flexbox</div>
+                <div class="tech-desc">Proportional Gantt chart rendering, responsive layout</div>
+              </div>
+            </div>
+            <div class="tech-item">
+              <div class="tech-dot dot-slate"></div>
+              <div>
+                <div class="tech-name">Plus Jakarta Sans</div>
+                <div class="tech-desc">Soft, readable typography via Google Fonts</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="badge-bar">
+          <span class="pill">No npm</span>
+          <span class="pill">No React</span>
+          <span class="pill">No Backend</span>
+          <span class="pill">Open index.html &rarr; Done</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 8: GANTT CHART DEMO SLIDE            -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-8">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 08</span>
+          <span class="slide-section">Visualizer</span>
+        </div>
+        <h2 class="slide-title">SchedSim — Live Gantt Output</h2>
+        
+        <!-- Live Static Gantt Reproduction -->
+        <div class="gantt-track">
+          <div class="gantt-seg" style="width: 3.57%; background: var(--p1);">P1(1)</div>
+          <div class="gantt-seg" style="width: 14.28%; background: var(--p2);">P2(4)</div>
+          <div class="gantt-seg" style="width: 7.14%; background: var(--p5);">P5(2)</div>
+          <div class="gantt-seg" style="width: 3.57%; background: var(--p1);">P1(1)</div>
+          <div class="gantt-seg" style="width: 14.28%; background: var(--p4);">P4(4)</div>
+          <div class="gantt-seg" style="width: 21.42%; background: var(--p1);">P1(6)</div>
+          <div class="gantt-seg" style="width: 32.14%; background: var(--p3);">P3(9)</div>
+          <div class="gantt-seg" style="width: 3.57%; background: var(--p4);">P4(1)</div>
+        </div>
+
+        <div class="gantt-axis">
+          <span class="axis-label" style="left: 0%;">0</span>
+          <span class="axis-label" style="left: 17.85%;">5</span>
+          <span class="axis-label" style="left: 25.0%;">7</span>
+          <span class="axis-label" style="left: 42.85%;">12</span>
+          <span class="axis-label" style="left: 64.28%;">18</span>
+          <span class="axis-label" style="left: 96.42%;">27</span>
+          <span class="axis-label" style="left: 100%;">28</span>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="grid-3" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+          <div class="summary-card">
+            <div class="summary-label">Avg Waiting</div>
+            <div class="summary-val">9.40</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Avg Turnaround</div>
+            <div class="summary-val">15.00</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Avg Response</div>
+            <div class="summary-val">4.40</div>
+          </div>
+          <div class="summary-card" style="background: var(--danger-soft); border-color: #F5C6CB;">
+            <div class="summary-label" style="color: var(--danger);">Starvation</div>
+            <div class="summary-val" style="color: var(--danger);">0</div>
+          </div>
+        </div>
+
+        <div class="muted-footer">All 5 processes completed. No starvation detected.</div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 9: COMPARISON RESULTS                -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-9">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 09</span>
+          <span class="slide-section">Results</span>
+        </div>
+        <h2 class="slide-title">Static Priority vs Dynamic Aging</h2>
+        
+        <div class="grid-2">
+          <!-- Static Box -->
+          <div class="card comp-box-static">
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Static Priority (Without Aging)</h3>
+            <div class="comp-stat">
+              <span>Average Waiting Time:</span>
+              <strong>8.60 units</strong>
+            </div>
+            <div class="comp-stat">
+              <span>Average Turnaround Time:</span>
+              <strong>14.20 units</strong>
+            </div>
+            <div class="comp-stat">
+              <span>Starved Processes:</span>
+              <strong style="color: var(--success);">0 process(es)</strong>
+            </div>
+          </div>
+
+          <!-- Dynamic Box -->
+          <div class="card comp-box-dynamic">
+            <h3 style="font-size: 15px; font-weight: 700; color: var(--accent-primary); margin-bottom: 12px;">Dynamic Priority (With Aging)</h3>
+            <div class="comp-stat">
+              <span>Average Waiting Time:</span>
+              <strong>9.40 units</strong>
+            </div>
+            <div class="comp-stat">
+              <span>Average Turnaround Time:</span>
+              <strong>15.00 units</strong>
+            </div>
+            <div class="comp-stat">
+              <span>Starved Processes:</span>
+              <strong style="color: var(--success);">0 process(es)</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="verdict-box">
+          Dynamic Aging ensured fair progressive priority escalations, bounding maximum latency and maintaining balanced queue turnaround.
+        </div>
+
+        <div class="muted-footer" style="text-align: left; margin-top: 10px;">
+          On starvation-prone workloads, Dynamic Priority eliminates starvation entirely &mdash; static scheduling cannot guarantee this.
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 10: TESTING                          -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-10">
+      <div class="slide-inner">
+        <div class="slide-meta">
+          <span class="slide-pill">SLIDE 10</span>
+          <span class="slide-section">Validation</span>
+        </div>
+        <h2 class="slide-title">Test scenarios &amp; results</h2>
+        
+        <table class="slide-table">
+          <thead>
+            <tr>
+              <th>Test Case</th>
+              <th>Input Parameters</th>
+              <th>Objective</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>FCFS Baseline</strong></td>
+              <td>5 proc, arrival 0&ndash;4</td>
+              <td>Arrival-order execution</td>
+              <td><span class="badge-pass">&check; PASSED</span></td>
+            </tr>
+            <tr>
+              <td><strong>Round Robin</strong></td>
+              <td>quantum=2, 5 proc</td>
+              <td>Time-slice preemption</td>
+              <td><span class="badge-pass">&check; PASSED</span></td>
+            </tr>
+            <tr>
+              <td><strong>Static Priority</strong></td>
+              <td>priorities 1&ndash;4</td>
+              <td>Priority ordering</td>
+              <td><span class="badge-pass">&check; PASSED</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dynamic Priority</strong></td>
+              <td>same 5 proc + aging</td>
+              <td>Starvation eliminated</td>
+              <td><span class="badge-pass">&check; PASSED</span></td>
+            </tr>
+            <tr>
+              <td><strong>Starvation Test</strong></td>
+              <td>low-pri, burst=9</td>
+              <td>wait &gt; 20 flag triggered</td>
+              <td><span class="badge-pass">&check; PASSED</span></td>
+            </tr>
+            <tr>
+              <td><strong>Comparison Mode</strong></td>
+              <td>static vs dynamic</td>
+              <td>Avg wait delta measured</td>
+              <td><span class="badge-pass">&check; PASSED</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="muted-footer" style="margin-top: 14px;">
+          <strong>6 / 6 tests passed</strong> &middot; 0 warnings from GCC &middot; 0 starvation events in dynamic mode
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SLIDE 11: THANK YOU                        -->
+    <!-- ========================================== -->
+    <section class="slide" id="slide-11">
+      <div class="slide-inner" style="align-items: center; text-align: center;">
+        <div class="slide-meta" style="justify-content: center;">
+          <span class="slide-pill">SLIDE 11</span>
+          <span class="slide-section">End</span>
+        </div>
+        <h1 class="slide-title" style="font-size: 42px; margin-bottom: 6px;">Thank you</h1>
+        <h2 class="title-sub" style="font-size: 18px; margin-bottom: 24px;">Smart CPU Scheduler with Dynamic Priority Adjustment</h2>
+        
+        <div class="thank-you-card">
+          <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+            Operating Systems and Systems Programming (25CS2104E)
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+            Section: S11 &nbsp;|&nbsp; Team 1 &nbsp;|&nbsp; Guide: Mrs. Alekhya
+          </div>
+
+          <div style="border-top: 1px solid var(--border-card); margin: 12px 0;"></div>
+
+          <div class="team-grid-2x2">
+            <div class="team-card-pill">Bhargava &middot; 2520090169</div>
+            <div class="team-card-pill">Hanish &middot; 2520090107</div>
+            <div class="team-card-pill">Teja &middot; 2520090162</div>
+            <div class="team-card-pill">Pardhu &middot; 2520090043</div>
+          </div>
+        </div>
+
+        <div class="muted-footer" style="margin-top: 24px;">
+          SchedSim &mdash; github.com/Bhargava-007/Operating-Systems-2-1
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Fixed Bottom Navigation Bar -->
+  <footer class="bottom-nav">
+    <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.04em;">
+      SCHEDSIM SLIDES
+    </div>
+
+    <div class="nav-btn-group">
+      <button id="btnPrev" class="nav-btn" aria-label="Previous Slide">&larr; Prev</button>
+      <button id="btnNext" class="nav-btn" aria-label="Next Slide">Next &rarr;</button>
+    </div>
+
+    <div id="slideCounter" class="slide-counter">1 / 11</div>
+  </footer>
+
+  <script>
+    // Presentation Deck Logic
+    (function() {
+      const slides = document.querySelectorAll('.slide');
+      const totalSlides = slides.length;
+      let currentSlide = 0;
+
+      const progressBar = document.getElementById('progressBar');
+      const slideCounter = document.getElementById('slideCounter');
+      const btnPrev = document.getElementById('btnPrev');
+      const btnNext = document.getElementById('btnNext');
+      const keyHint = document.getElementById('keyHint');
+
+      function showSlide(index) {
+        if (index < 0 || index >= totalSlides) return;
+        
+        slides[currentSlide].classList.remove('active');
+        currentSlide = index;
+        slides[currentSlide].classList.add('active');
+
+        // Update progress bar
+        const progressPct = ((currentSlide + 1) / totalSlides) * 100;
+        progressBar.style.width = progressPct + '%';
+
+        // Update slide counter
+        slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+        // Update button states
+        btnPrev.disabled = currentSlide === 0;
+        btnNext.disabled = currentSlide === totalSlides - 1;
+      }
+
+      function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+          showSlide(currentSlide + 1);
+        }
+      }
+
+      function prevSlide() {
+        if (currentSlide > 0) {
+          showSlide(currentSlide - 1);
+        }
+      }
+
+      // Event Listeners for Nav Buttons
+      btnNext.addEventListener('click', nextSlide);
+      btnPrev.addEventListener('click', prevSlide);
+
+      // Keyboard Navigation
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevSlide();
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          showSlide(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          showSlide(totalSlides - 1);
+        }
+      });
+
+      // Fade out keyboard shortcut hint after 3.2 seconds
+      setTimeout(function() {
+        if (keyHint) {
+          keyHint.style.opacity = '0';
+          setTimeout(function() {
+            keyHint.style.display = 'none';
+          }, 600);
+        }
+      }, 3200);
+
+      // Initialize
+      showSlide(0);
+    })();
+  </script>
+</body>
+</html>

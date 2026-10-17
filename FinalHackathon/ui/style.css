@@ -1,0 +1,766 @@
+/* SchedSim Design System - Clean, Balanced Layout */
+
+:root {
+    /* Color Palette */
+    --bg-page: #F7F5F2;
+    --surface-card: #FFFFFF;
+    --border-card: #E8E4DF;
+    --border-input: #D8D3CC;
+
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6B6B;
+    --text-muted: #8C8C8C;
+    --label-color: #374151;
+
+    /* Accent & State */
+    --accent-primary: #5C6AC4;
+    --accent-hover: #4A58B2;
+    --accent-soft: #EEF0FA;
+
+    --danger: #C0392B;
+    --danger-soft: #FDECEA;
+    --success: #27AE60;
+    --success-soft: #EAFAF1;
+
+    /* Idle block */
+    --idle-color: #EAE6E0;
+
+    /* Typography & Radius */
+    --font-family: 'Plus Jakarta Sans', sans-serif;
+    --radius-card: 14px;
+    --radius-btn: 8px;
+    --radius-input: 8px;
+
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+input, select, button, textarea {
+    font-family: inherit;
+}
+
+/* App Layout */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header */
+.app-header {
+    background-color: var(--surface-card);
+    border-bottom: 1px solid var(--border-card);
+    padding: 16px 32px;
+}
+
+.header-content {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent-primary);
+    background-color: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.header-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Workspace Container - 32px padding, 24px gap, 340px fixed left sidebar, flex 1 right */
+.workspace-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 32px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.column-sidebar {
+    width: 340px;
+    min-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.column-main {
+    flex: 1;
+    min-width: 0; /* Prevents overflow */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Card Component - padding 28px, border-radius 14px, border 1px solid #E8E4DF */
+.card {
+    background-color: var(--surface-card);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 28px;
+}
+
+.card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.card-header-flex > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-header-flex .card-title {
+    margin-bottom: 0;
+}
+
+.card-header-flex .card-subtitle {
+    margin: 0;
+}
+
+.meta-tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-page);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-card);
+}
+
+/* Form Controls & Inputs */
+.form-group {
+    margin-bottom: 16px;
+}
+
+label,
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--label-color);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+}
+
+input,
+select,
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-input);
+    border: 1px solid var(--border-input);
+    background-color: var(--surface-card);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus,
+.form-input:focus,
+.form-select:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(92,106,196,0.12);
+}
+
+.form-hint {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.info-note {
+    background-color: var(--accent-soft);
+    border-radius: var(--radius-input);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+/* Buttons */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-btn);
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* "Run Simulation": bg #5C6AC4, color white, padding 11px 24px, border-radius 8px, font-weight 600, font-size 14px, hover: bg #4A58B2, transition 0.15s */
+#btnRun,
+.btn-primary {
+    background-color: #5C6AC4;
+    color: #FFFFFF;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: 1px solid #5C6AC4;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+#btnRun:hover,
+.btn-primary:hover {
+    background-color: #4A58B2;
+    border-color: #4A58B2;
+}
+
+/* "Reset": bg transparent, border 1px solid #D8D3CC, color #6B6B6B, same padding */
+#btnReset,
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid #D8D3CC;
+    color: #6B6B6B;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+#btnReset:hover,
+.btn-secondary:hover {
+    background-color: #FAFAF9;
+    color: #1A1A1A;
+}
+
+/* "Add to Queue": full width, bg #F7F5F2, border 1px solid #D8D3CC, color #1A1A1A, padding 11px, border-radius 8px, hover: bg #EEEAE5 */
+#addProcessForm button[type="submit"],
+.btn-full {
+    width: 100%;
+    background-color: #F7F5F2;
+    border: 1px solid #D8D3CC;
+    color: #1A1A1A;
+    padding: 11px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+#addProcessForm button[type="submit"]:hover,
+.btn-full:hover {
+    background-color: #EEEAE5;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--accent-primary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Remove button: font-size 12px, color #C0392B, background none, border none, cursor pointer */
+.btn-remove {
+    background: none;
+    border: none;
+    color: #C0392B;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0;
+    transition: opacity 0.15s ease;
+}
+
+.btn-remove:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* PROCESS WORKLOAD LIST:
+   - Each row: display flex, align-items center, gap 12px
+   - Color dot: 10px circle
+   - Name: font-weight 600, font-size 13px
+   - Metadata (arrival, burst, priority): font-size 12px, color #6B6B6B
+   - Remove button: font-size 12px, color #C0392B, background none, border none, cursor pointer
+*/
+#processQueueTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#processQueueTable thead {
+    display: none;
+}
+
+#processQueueTable tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+#processQueueTable tbody tr {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background-color: #FAFAF9;
+    border: 1px solid var(--border-card);
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#processQueueTable td {
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+#processQueueTable td:nth-child(1) {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+#processQueueTable td:nth-child(1) span {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0;
+    display: inline-block;
+    margin: 0 !important;
+}
+
+#processQueueTable td:nth-child(1) strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#processQueueTable td:nth-child(2),
+#processQueueTable td:nth-child(3),
+#processQueueTable td:nth-child(4) {
+    font-size: 12px;
+    color: #6B6B6B;
+    white-space: nowrap;
+}
+
+#processQueueTable td:nth-child(2)::before {
+    content: "Arr: ";
+    font-size: 11px;
+    color: #8C8C8C;
+}
+
+#processQueueTable td:nth-child(3)::before {
+    content: "Burst: ";
+    font-size: 11px;
+    color: #8C8C8C;
+}
+
+#processQueueTable td:nth-child(4)::before {
+    content: "Pri: ";
+    font-size: 11px;
+    color: #8C8C8C;
+}
+
+#processQueueTable td:nth-child(5) {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+#processQueueTable td.empty-state-text {
+    width: 100%;
+    text-align: center;
+    padding: 16px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* GANTT CHART:
+   - Each process block: height 52px, border-radius 8px
+   - Process label inside block: font-size 12px, font-weight 600, color white with text-shadow 0 1px 2px rgba(0,0,0,0.25) so it reads on pastel bg
+   - Time axis labels below: font-size 11px, color #6B6B6B
+   - Add 12px gap between the gantt bar and the time axis
+   - Gantt container: no horizontal scroll, width 100%
+*/
+.gantt-wrapper {
+    width: 100%;
+    position: relative;
+    padding: 4px 0 8px 0;
+    overflow-x: hidden;
+}
+
+.gantt-timeline {
+    display: flex;
+    width: 100%;
+    height: 52px;
+    border-radius: 8px;
+    background-color: var(--bg-page);
+    border: 1px solid var(--border-card);
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.gantt-block {
+    height: 52px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    border-right: 1px solid rgba(255, 255, 255, 0.4);
+    position: relative;
+    cursor: default;
+    transition: opacity 0.15s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.gantt-block:hover {
+    opacity: 0.92;
+}
+
+.gantt-block-idle {
+    background-color: var(--idle-color) !important;
+    color: var(--text-secondary) !important;
+    text-shadow: none !important;
+    font-weight: 500;
+}
+
+/* 12px gap between the gantt bar and the time axis */
+.gantt-axis {
+    display: block;
+    height: 20px;
+    position: relative;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.gantt-tick {
+    position: absolute;
+    font-size: 11px;
+    color: #6B6B6B;
+    font-weight: 500;
+    transform: translateX(-50%);
+    top: 0;
+}
+
+.gantt-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-card);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* STATS TABLE:
+   - Header row: font-size 12px, font-weight 600, color #6B6B6B, letter-spacing 0.04em, text-transform uppercase
+   - Data rows: font-size 13px, line-height 1.5
+   - Row padding: 12px 8px
+   - Alternating row bg: even rows #FAFAF9, odd rows white
+   - Highlighted values (waiting time, response time): color #5C6AC4, font-weight 600
+*/
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#resultsTable {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+#resultsTable thead tr {
+    border-bottom: 1px solid var(--border-card);
+}
+
+#resultsTable th {
+    padding: 12px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B6B6B;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#resultsTable tbody tr:nth-child(odd) {
+    background-color: #FFFFFF;
+}
+
+#resultsTable tbody tr:nth-child(even) {
+    background-color: #FAFAF9;
+}
+
+#resultsTable td {
+    padding: 12px 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-bottom: 1px solid #F0ECE6;
+    color: var(--text-primary);
+}
+
+#resultsTable tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Highlighted values (waiting time: col 7, response time: col 9) */
+#resultsTable tbody td:nth-child(7),
+#resultsTable tbody td:nth-child(9) {
+    color: #5C6AC4;
+    font-weight: 600;
+}
+
+.empty-state-text {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px 0;
+    font-size: 13px;
+}
+
+/* SUMMARY STAT CARDS (avg waiting time etc):
+   - Display as a 4-column grid at bottom
+   - Each card: padding 20px, border-radius 12px, bg #FAFAF9
+   - Label: font-size 12px, color #6B6B6B, margin-bottom 6px
+   - Value: font-size 28px, font-weight 700, color #1A1A1A
+   - Starvation warning card: bg #FDECEA, value color #C0392B
+*/
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-card);
+}
+
+.stat-card {
+    background-color: #FAFAF9;
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6B6B6B;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1A1A1A;
+    line-height: 1.1;
+}
+
+/* Starvation warning card: bg #FDECEA, value color #C0392B */
+.stat-card-danger {
+    background-color: #FDECEA !important;
+    border-color: #F5C6CB !important;
+}
+
+.stat-card-danger .stat-value {
+    color: #C0392B !important;
+}
+
+/* Starvation Alert Banner */
+.alert-container {
+    background-color: var(--danger-soft);
+    border: 1px solid #F5C6CB;
+    border-radius: var(--radius-card);
+    padding: 16px 20px;
+    color: var(--danger);
+}
+
+.alert-title {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+}
+
+.alert-item {
+    font-size: 12.5px;
+    margin-top: 3px;
+}
+
+/* Comparison View */
+.comparison-container {
+    margin-top: 12px;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.comparison-box {
+    background-color: #FAFAF9;
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.highlight-box {
+    background-color: var(--accent-soft);
+    border-color: #D3D8EE;
+}
+
+.comparison-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.comp-stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.comp-stat-row strong {
+    color: var(--text-primary);
+}
+
+.text-danger {
+    color: var(--danger) !important;
+}
+
+.text-success {
+    color: var(--success) !important;
+}
+
+.verdict-banner {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background-color: var(--success-soft);
+    border: 1px solid #BCE5CE;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1E6B3E;
+    line-height: 1.5;
+}
+
+/* Responsive Breakpoint */
+@media (max-width: 1100px) {
+    .workspace-container {
+        flex-direction: column;
+    }
+    .column-sidebar {
+        width: 100%;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

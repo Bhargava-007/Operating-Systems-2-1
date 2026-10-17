@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchedSim — CPU Scheduler Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <span class="header-badge">OS Lab Hackathon</span>
+                    <h1 class="header-title">SchedSim — CPU Scheduler Visualizer</h1>
+                </div>
+                <div class="header-right">
+                    <span class="header-desc">Dynamic Priority Adjustment & Starvation Prevention</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace-container">
+            <!-- Left Column: Controls & Process Input -->
+            <div class="column-sidebar">
+                <!-- Algorithm Configuration Card -->
+                <div class="card">
+                    <h2 class="card-title">Scheduling Configuration</h2>
+                    <div class="form-group">
+                        <label for="algorithmSelect" class="form-label">Algorithm</label>
+                        <select id="algorithmSelect" class="form-select">
+                            <option value="FCFS">First Come First Served (FCFS)</option>
+                            <option value="RR">Round Robin (RR)</option>
+                            <option value="Priority">Priority (Non-preemptive)</option>
+                            <option value="DynamicPriority" selected>Dynamic Priority (Aging)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="quantumGroup" style="display: none;">
+                        <label for="timeQuantumInput" class="form-label">Time Quantum</label>
+                        <input type="number" id="timeQuantumInput" class="form-input" min="1" max="20" value="3">
+                        <span class="form-hint">Time slice per CPU burst</span>
+                    </div>
+
+                    <div class="form-group" id="agingGroup">
+                        <label class="form-label">Aging Rule</label>
+                        <div class="info-note">
+                            Every <strong>5 units</strong> of wait, priority boosts by <strong>+1</strong> (capped at +5). Starvation flagged at <strong>&gt;20 units</strong>.
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="btnRun" class="btn btn-primary">Run Simulation</button>
+                        <button id="btnReset" class="btn btn-secondary">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Add Process Card -->
+                <div class="card">
+                    <h2 class="card-title">Add Process</h2>
+                    <form id="addProcessForm">
+                        <div class="input-grid">
+                            <div class="form-group">
+                                <label for="procName" class="form-label">Process Name</label>
+                                <input type="text" id="procName" class="form-input" placeholder="e.g. P6" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="procArrival" class="form-label">Arrival Time</label>
+                                <input type="number" id="procArrival" class="form-input" min="0" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="procBurst" class="form-label">Burst Time</label>
+                                <input type="number" id="procBurst" class="form-input" min="1" value="4" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="procPriority" class="form-label">Priority</label>
+                                <input type="number" id="procPriority" class="form-input" min="1" max="20" value="2" required>
+                                <span class="form-hint">1 = Highest</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-full">Add to Queue</button>
+                    </form>
+                </div>
+
+                <!-- Process Queue Table Card -->
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2 class="card-title">Process Workload</h2>
+                        <button id="btnLoadSample" class="btn-link">Load Sample</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="processQueueTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Arrival</th>
+                                    <th>Burst</th>
+                                    <th>Priority</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="processQueueBody">
+                                <!-- Populated dynamically by app.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Visualization, Gantt & Stats -->
+            <div class="column-main">
+                <!-- Starvation Alert Banner -->
+                <div id="starvationAlertArea" class="alert-container" style="display: none;">
+                    <!-- Populated dynamically if wait > 20 -->
+                </div>
+
+                <!-- Gantt Chart Card -->
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2 class="card-title">Gantt Chart Timeline</h2>
+                        <span id="timelineDuration" class="meta-tag">Duration: 0 units</span>
+                    </div>
+                    <div class="gantt-wrapper">
+                        <div id="ganttTimeline" class="gantt-timeline">
+                            <div class="empty-state-text">Press "Run Simulation" to render execution timeline.</div>
+                        </div>
+                        <div id="ganttTimeAxis" class="gantt-axis"></div>
+                    </div>
+                    <div id="ganttLegend" class="gantt-legend"></div>
+                </div>
+
+                <!-- Performance Metrics Table -->
+                <div class="card">
+                    <h2 class="card-title">Process Execution Metrics</h2>
+                    <div class="table-container">
+                        <table class="data-table" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Name</th>
+                                    <th>Arrival</th>
+                                    <th>Burst</th>
+                                    <th>Original Priority</th>
+                                    <th>Final Priority</th>
+                                    <th>Waiting Time</th>
+                                    <th>Turnaround Time</th>
+                                    <th>Response Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody">
+                                <tr>
+                                    <td colspan="9" class="empty-state-text">No simulation run yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Average Waiting Time</span>
+                            <span class="stat-value" id="avgWaitVal">—</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Average Turnaround Time</span>
+                            <span class="stat-value" id="avgTatVal">—</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Average Response Time</span>
+                            <span class="stat-value" id="avgRespVal">—</span>
+                        </div>
+                        <div class="stat-card stat-card-danger">
+                            <span class="stat-label">Starvation Warnings (&gt;20 units)</span>
+                            <span class="stat-value" id="starveCountVal">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algorithm Comparison Card -->
+                <div class="card">
+                    <div class="card-header-flex">
+                        <div>
+                            <h2 class="card-title">Comparative Analysis: Static Priority vs Dynamic Aging</h2>
+                            <p class="card-subtitle">Examines how dynamic priority resolves long-tail starvation and waiting imbalance.</p>
+                        </div>
+                        <button id="btnRunComparison" class="btn btn-secondary">Run Comparison</button>
+                    </div>
+
+                    <div id="comparisonArea" class="comparison-container" style="display: none;">
+                        <div class="comparison-grid">
+                            <div class="comparison-box">
+                                <h3 class="comparison-title">Static Priority (Without Aging)</h3>
+                                <div class="comp-stat-row">
+                                    <span>Average Waiting Time:</span>
+                                    <strong id="compStaticWait">—</strong>
+                                </div>
+                                <div class="comp-stat-row">
+                                    <span>Average Turnaround Time:</span>
+                                    <strong id="compStaticTat">—</strong>
+                                </div>
+                                <div class="comp-stat-row">
+                                    <span>Starved Processes:</span>
+                                    <strong id="compStaticStarve" class="text-danger">—</strong>
+                                </div>
+                            </div>
+
+                            <div class="comparison-box highlight-box">
+                                <h3 class="comparison-title">Dynamic Priority (With Aging)</h3>
+                                <div class="comp-stat-row">
+                                    <span>Average Waiting Time:</span>
+                                    <strong id="compDynamicWait" class="text-success">—</strong>
+                                </div>
+                                <div class="comp-stat-row">
+                                    <span>Average Turnaround Time:</span>
+                                    <strong id="compDynamicTat">—</strong>
+                                </div>
+                                <div class="comp-stat-row">
+                                    <span>Starved Processes:</span>
+                                    <strong id="compDynamicStarve" class="text-success">—</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="comparisonVerdict" class="verdict-banner"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
